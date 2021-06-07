@@ -5,8 +5,19 @@ cmake_policy(SET CMP0054 NEW)
 # MSVC runtime library flags are selected by an abstraction.
 cmake_policy(SET CMP0091 NEW)
 
-set(CMAKE_C_COMPILER clang)
-set(CMAKE_CXX_COMPILER clang++)
+set(CMAKE_C_COMPILER /media/tnoho/SSD1/webrtc/src/third_party/llvm-build/Release+Asserts/bin/clang)
+set(CMAKE_CXX_COMPILER /media/tnoho/SSD1/webrtc/src/third_party/llvm-build/Release+Asserts/bin/clang++)
+
+set(LIBCXX_INCLUDE_DIR /media/tnoho/SSD1/webrtc/src/buildtools/third_party/libc++/trunk/include)
+add_compile_options(
+  "$<$<COMPILE_LANGUAGE:CXX>:-nostdinc++>"
+  "$<$<AND:$<COMPILE_LANGUAGE:CXX>,$<BOOL:LIBCXX_INCLUDE_DIR>>:-isystem${LIBCXX_INCLUDE_DIR}>"
+)
+add_compile_definitions(
+    _LIBCPP_ABI_UNSTABLE
+    _LIBCPP_DISABLE_AVAILABILITY
+    FMT_HEADER_ONLY
+    )
 
 include(cmake/env.cmake)
 include(cmake/tools.cmake)
@@ -143,17 +154,27 @@ CPMAddPackage(
     NAME fmt
     GITHUB_REPOSITORY fmtlib/fmt
     GIT_TAG ${FMT_VERSION}
+    DOWNLOAD_ONLY YES
     )
 
 CPMAddPackage(
     NAME spdlog
     GITHUB_REPOSITORY gabime/spdlog
     VERSION ${SPDLOG_VERSION}
+    DOWNLOAD_ONLY YES
     )
 
 project(shiguredo::mp4 C CXX)
 
 add_library(shiguredo-mp4)
+
+set(SYSROOT /media/tnoho/SSD1/jetson-t210)
+set(ARCH_NAME aarch64-linux-gnu)
+set(CMAKE_SYSROOT ${SYSROOT})
+set(CMAKE_C_COMPILER_TARGET ${ARCH_NAME})
+set(CMAKE_CXX_COMPILER_TARGET ${ARCH_NAME})
+target_include_directories(shiguredo-mp4 PRIVATE ${SYSROOT}/usr/include/${ARCH_NAME})
+target_link_directories(shiguredo-mp4 PRIVATE ${SYSROOT}/usr/lib/${ARCH_NAME})
 
 target_sources(shiguredo-mp4
     PRIVATE
@@ -272,6 +293,7 @@ target_include_directories(shiguredo-mp4
     ${spdlog_SOURCE_DIR}/include
     )
 
+#set_target_properties(shiguredo-mp4 PROPERTIES CXX_STANDARD 14 C_STANDARD 99)
 set_target_properties(shiguredo-mp4 PROPERTIES CXX_STANDARD 20 C_STANDARD 11)
 
 target_link_libraries(shiguredo-mp4

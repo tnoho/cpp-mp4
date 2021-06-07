@@ -1,1 +1,10 @@
 .DS_Store
+settings.json
+
+CMakeFiles/
+CPM_modules/
+_deps/
+CMakeCache.txt
+Makefile
+*.cmake
+*.a
